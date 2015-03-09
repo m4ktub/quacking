@@ -108,10 +108,6 @@ public class Mixin implements DuckType {
 		// ensure a classloader
 		ClassLoader classLoader = kind.getClassLoader();
 		if (classLoader == null) {
-			classLoader = implementations.get(0).getClass().getClassLoader();
-		}
-
-		if (classLoader == null) {
 			classLoader = this.getClass().getClassLoader();
 		}
 
