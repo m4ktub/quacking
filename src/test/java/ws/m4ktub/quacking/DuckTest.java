@@ -79,7 +79,7 @@ public class DuckTest {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void asaShy() {
+	public void asShy() {
 		Mixin bird = new Mixin(new ShyBird());
 		assertThat(bird.as(Duck.class).quack(), is("quack"));
 	}
@@ -98,7 +98,7 @@ public class DuckTest {
 	
 
 	@Test(expected = IllegalArgumentException.class)
-	public void asaClass() {
+	public void asClass() {
 		Mixin mixin = new Mixin(new Object());
 		mixin.as(Bird.class);
 	}
