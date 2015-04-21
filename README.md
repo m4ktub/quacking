@@ -1,7 +1,7 @@
 Java Quacking
 =============
 
-[![Build Status](https://travis-ci.org/m4ktub/platypus.svg)](https://travis-ci.org/m4ktub/platypus)
+[![Build Status](https://travis-ci.org/m4ktub/quacking.svg)](https://travis-ci.org/m4ktub/quacking)
 
 This is simple library helping to implement some sort of *duck typing*. Only
 standard Java features are used so *duck typing* is accomplished with dynamic
