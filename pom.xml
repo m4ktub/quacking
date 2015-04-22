@@ -10,7 +10,7 @@
 	<inceptionYear>2015</inceptionYear>
 	<description>A framework for simulating mixins in plain Java.</description>
 	<url>https://github.com/m4ktub/quacking</url>
-	
+
 	<scm>
 		<url>https://github.com/m4ktub/quacking</url>
 		<connection>scm:git:git://github.com/m4ktub/quacking.git</connection>
@@ -49,6 +49,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
 				<configuration>
 					<source>${project.build.compiler.source}</source>
 					<target>${project.build.compiler.target}</target>
