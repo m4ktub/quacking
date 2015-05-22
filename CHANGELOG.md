@@ -3,6 +3,15 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.2
+-----------
+
+Java 8 compatibility.
+
+  * Added support for Java 8 lambda expressions.
+  * Keep compatibility with Java 7 (two projects).
+  * Added tests for samples in documentation.
+
 Version 0.1
 -----------
 

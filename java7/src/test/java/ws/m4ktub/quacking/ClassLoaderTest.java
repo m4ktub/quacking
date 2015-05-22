@@ -62,7 +62,8 @@ public class ClassLoaderTest {
 		}
 
 		public static void test() {
-			Mixin mixin = new Mixin(new DuckList());
+			Mixin mixin = new Mixin();
+			mixin.mix(new DuckList());
 			assertThat(mixin.as(CustomList.class).size(), equalTo(42));
 		}
 
@@ -70,7 +71,8 @@ public class ClassLoaderTest {
 
 	@Test
 	public void boostrap() {
-		Mixin mixin = new Mixin(new DuckList());
+		Mixin mixin = new Mixin();
+		mixin.mix(new DuckList());
 		assertThat(mixin.as(List.class).size(), equalTo(42));
 	}
 

@@ -49,7 +49,8 @@ public class DucklingsTest {
 
 	@Test
 	public void is() {
-		Mixin mixin = new Mixin(new Donald());
+		Mixin mixin = new Mixin();
+		mixin.mix(new Donald());
 		mixin.mix(new Louie());
 		mixin.mix(new Dewey());
 		mixin.mix(new Huey());
@@ -59,7 +60,8 @@ public class DucklingsTest {
 
 	@Test
 	public void as() {
-		Mixin mixin = new Mixin(new Donald());
+		Mixin mixin = new Mixin();
+		mixin.mix(new Donald());
 		mixin.mix(new Louie());
 		mixin.mix(new Dewey());
 		mixin.mix(new Huey());
@@ -72,7 +74,8 @@ public class DucklingsTest {
 
 	@Test
 	public void asOrder() {
-		Mixin mixin = new Mixin(new Donald());
+		Mixin mixin = new Mixin();
+		mixin.mix(new Donald());
 		mixin.mix(new Louie());
 		mixin.mix(new Dewey());
 		mixin.mix(new Fethry()); // added before Huey
@@ -83,7 +86,8 @@ public class DucklingsTest {
 
 	@Test
 	public void asas() {
-		Mixin mixin = new Mixin(new Donald());
+		Mixin mixin = new Mixin();
+		mixin.mix(new Donald());
 		mixin.mix(new Louie());
 		mixin.mix(new Dewey());
 		mixin.mix(new Huey());

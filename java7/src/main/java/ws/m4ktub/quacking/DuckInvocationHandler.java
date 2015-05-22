@@ -11,9 +11,13 @@ class DuckInvocationHandler implements InvocationHandler {
 		this.mixin = mixin;
 	}
 
+	public final Mixin getMixin() {
+		return mixin;
+	}
+
 	@Override
 	public Object invoke(Object proxy, Method intfMethod, Object[] args) throws Throwable {
-		// implement the interface common to all proxies directly
+		// handle DuckType interface explicitly with mixin
 		if (intfMethod.getDeclaringClass().equals(DuckType.class)) {
 			return intfMethod.invoke(mixin, args);
 		}
@@ -25,19 +29,38 @@ class DuckInvocationHandler implements InvocationHandler {
 
 		// delegate method invocation to instances
 		for (Object instance : mixin.getInstances(intfMethod.getDeclaringClass())) {
+			Method implMethod = getMethod(intfMethod, instance);
+			if (implMethod == null) {
+				// continue with next instance
+				continue;
+			}
+
 			try {
-				Method implMethod = instance.getClass().getMethod(intfMethod.getName(), intfMethod.getParameterTypes());
+				// perform invocation
 				return implMethod.invoke(instance, args);
-			} catch (NoSuchMethodException e) {
-				// ignore to process next instance
+			} catch (IllegalAccessException e) {
+				// found method but could not invoke it
+				String message = String.format("The mixin failed to invoke method %s on %s. The method was not accessible.", intfMethod, instance);
+				throw new UnsupportedOperationException(message, e);
 			}
 		}
 
-		// no value was returned so throw exception
+		// no value was returned so throw an exception
 		String message = String.format("The mixin does not support the method %s. The implemented method must be public and accept the same arguments.", intfMethod);
 		throw new UnsupportedOperationException(message);
 	}
 
-	
+	protected Method getMethod(Method intfMethod, Object instance) {
+		if (intfMethod.getDeclaringClass().isAssignableFrom(instance.getClass())) {
+			return intfMethod;
+		}
+
+		try {
+			return instance.getClass().getMethod(intfMethod.getName(), intfMethod.getParameterTypes());
+		} catch (NoSuchMethodException e) {
+			// transform exception into null
+			return null;
+		}
+	}
 
 }

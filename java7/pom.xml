@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>ws.m4ktub.quacking</groupId>
+		<artifactId>quacking</artifactId>
+		<version>0.2.0-SNAPSHOT</version>
+		<relativePath>../</relativePath>
+	</parent>
+
+	<artifactId>quacking-j7</artifactId>
+	<packaging>jar</packaging>
+
+	<name>Java Duck Typing Framework for JRE7</name>
+
+	<properties>
+		<project.build.compiler.source>1.7</project.build.compiler.source>
+		<project.build.compiler.target>1.7</project.build.compiler.target>
+		<project.build.compiler.testSource>1.7</project.build.compiler.testSource>
+		<project.build.compiler.testTarget>1.7</project.build.compiler.testTarget>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>
