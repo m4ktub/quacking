@@ -4,7 +4,7 @@
 	<groupId>ws.m4ktub.quacking</groupId>
 	<artifactId>quacking</artifactId>
 	<packaging>pom</packaging>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.2.1</version>
 
 	<name>Java Duck Typing Framework</name>
 	<inceptionYear>2015</inceptionYear>
@@ -15,7 +15,7 @@
 		<url>https://github.com/m4ktub/quacking</url>
 		<connection>scm:git:git://github.com/m4ktub/quacking.git</connection>
 		<developerConnection>scm:git:git@github.com:m4ktub/quacking.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>v0.2.1</tag>
 	</scm>
 
 	<ciManagement>
