@@ -3,6 +3,11 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.2.1
+-------------
+
+ * Fixed Travis CI build by requiring Java 8 to be used.
+
 Version 0.2
 -----------
 
