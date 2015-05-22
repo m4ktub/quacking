@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>ws.m4ktub.quacking</groupId>
 		<artifactId>quacking</artifactId>
-		<version>0.2.0</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 
