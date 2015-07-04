@@ -3,6 +3,8 @@ package ws.m4ktub.quacking;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import ws.m4ktub.quacking.helpers.Reflections;
+
 class DuckInvocationHandler implements InvocationHandler {
 
 	private Mixin mixin;
@@ -29,7 +31,7 @@ class DuckInvocationHandler implements InvocationHandler {
 
 		// delegate method invocation to instances
 		for (Object instance : mixin.getInstances(intfMethod.getDeclaringClass())) {
-			Method implMethod = getMethod(intfMethod, instance);
+			Method implMethod = Reflections.getCompatibleMethod(instance, intfMethod, args);
 			if (implMethod == null) {
 				// continue with next instance
 				continue;
@@ -48,19 +50,6 @@ class DuckInvocationHandler implements InvocationHandler {
 		// no value was returned so throw an exception
 		String message = String.format("The mixin does not support the method %s. The implemented method must be public and accept the same arguments.", intfMethod);
 		throw new UnsupportedOperationException(message);
-	}
-
-	protected Method getMethod(Method intfMethod, Object instance) {
-		if (intfMethod.getDeclaringClass().isAssignableFrom(instance.getClass())) {
-			return intfMethod;
-		}
-
-		try {
-			return instance.getClass().getMethod(intfMethod.getName(), intfMethod.getParameterTypes());
-		} catch (NoSuchMethodException e) {
-			// transform exception into null
-			return null;
-		}
 	}
 
 }
