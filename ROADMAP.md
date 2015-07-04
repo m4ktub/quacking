@@ -38,9 +38,3 @@ Version 0.4
 -----------
 
   * Support for Generics and variance where possible.
-
-Version 0.3
------------
-
-  * Allow the use of subtypes in return types. 
-  * Allow the use of equivalent primitive and wrapper types.

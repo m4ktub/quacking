@@ -3,6 +3,15 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.3
+-----------
+
+Dynamic dispatching and subtyping.
+
+  * Allow the use of subtypes in return types. 
+  * Allow the use of equivalent primitive and wrapper types.
+  * Perform dynamic dispatch of method invocation.
+
 Version 0.2
 -----------
 
