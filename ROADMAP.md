@@ -33,8 +33,3 @@ Version 0.5
 
   * Collaboration between mixed instances. A mixed instance can receive the 
     mixing and call other implementations through the mixin.
-
-Version 0.4
------------
-
-  * Support for Generics and variance where possible.

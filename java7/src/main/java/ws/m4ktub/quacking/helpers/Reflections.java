@@ -2,6 +2,8 @@ package ws.m4ktub.quacking.helpers;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -79,16 +81,16 @@ public final class Reflections {
 		if (objMethod == null) {
 			objMethod = getMultiDispatchMethod(object, method, args);
 		}
-		
+
 		if (objMethod == null) {
 			return null;
 		}
 
 		// check compatible return types
-		Class<?> intfMethodReturnType = method.getReturnType();
-		Class<?> implMethodReturnType = objMethod.getReturnType();
+		Type intfMethodReturnType = method.getGenericReturnType();
+		Type implMethodReturnType = objMethod.getGenericReturnType();
 
-		if (!isGenerallyAssignableFrom(intfMethodReturnType, implMethodReturnType)) {
+		if (!isTypeCompatible(intfMethodReturnType, implMethodReturnType)) {
 			return null;
 		}
 
@@ -126,11 +128,11 @@ public final class Reflections {
 		}
 
 		// find most specific method using left-to-right disambiguation
-		Class<?>[] parameterTypes = getMultiDispatchParameterTypes(method, args);
+		Type[] parameterTypes = getMultiDispatchParameterTypes(method, args);
 		return getMultiDispatchMethodMatch(candidates, parameterTypes, 0);
 	}
 
-	private static Method getMultiDispatchMethodMatch(List<Method> candidates, Class<?>[] concreteParameterTypes, int pos) {
+	private static Method getMultiDispatchMethodMatch(List<Method> candidates, Type[] concreteParameterTypes, int pos) {
 		if (candidates.isEmpty()) {
 			return null;
 		}
@@ -142,18 +144,18 @@ public final class Reflections {
 		int score = Integer.MAX_VALUE;
 		List<Method> others = new ArrayList<Method>();
 		List<Method> best = new ArrayList<Method>();
-		Class<?> concreteParamType = concreteParameterTypes[pos];
+		Type concreteParamType = concreteParameterTypes[pos];
 
 		Iterator<Method> candidatesIterator = candidates.iterator();
 		while (candidatesIterator.hasNext()) {
 			Method method = candidatesIterator.next();
-			Class<?> paramType = method.getParameterTypes()[pos];
+			Type paramType = method.getGenericParameterTypes()[pos];
 
 			int paramScore = getAssignableScore(paramType, concreteParamType);
 			if (paramScore < 0) {
 				continue;
 			}
-			
+
 			if (paramScore == score) {
 				best.add(method);
 			} else if (paramScore < score) {
@@ -174,20 +176,22 @@ public final class Reflections {
 		return result;
 	}
 
-	private static int getAssignableScore(Class<?> paramType, Class<?> argType) {
-		if (argType == null) {
+	private static int getAssignableScore(Type paramType, Type argType) {
+		if (argType == null || paramType.equals(argType)) {
+			// reached Object or the same type
 			return 0;
 		}
 
-		if (!isGenerallyAssignableFrom(paramType, argType)) {
+		if (!isTypeCompatible(paramType, argType)) {
 			return -1;
 		}
-		
-		if (paramType.equals(argType)) {
+
+		if (!(argType instanceof Class<?>)) {
 			return 0;
 		}
 
-		int score = getAssignableScore(paramType, argType.getSuperclass());
+		Class<?> classArgType = (Class<?>) argType;
+		int score = getAssignableScore(paramType, classArgType.getSuperclass());
 		return score < 0 ? -1 : score + 1;
 	}
 
@@ -210,13 +214,13 @@ public final class Reflections {
 	 * @return An array with the most specific type that can be determined for
 	 *         each parameter.
 	 */
-	public static Class<?>[] getMultiDispatchParameterTypes(Method method, Object[] argumentTypes) {
-		Class<?>[] parameterTypes = method.getParameterTypes();
+	public static Type[] getMultiDispatchParameterTypes(Method method, Object[] argumentTypes) {
+		Type[] genericParameterTypes = method.getGenericParameterTypes();
 
-		Class<?>[] result = new Class<?>[argumentTypes.length];
+		Type[] result = new Type[argumentTypes.length];
 		for (int i = 0; i < result.length; i++) {
 			Object argType = argumentTypes[i];
-			result[i] = argType != null ? argType.getClass() : parameterTypes[i];
+			result[i] = argType != null ? argType.getClass() : genericParameterTypes[i];
 		}
 
 		return result;
@@ -250,6 +254,54 @@ public final class Reflections {
 		}
 
 		return result;
+	}
+
+	public static boolean isTypeCompatible(Type targetType, Type valueType) {
+		if (targetType instanceof Class<?>) {
+			return isTypeCompatibleValue((Class<?>) targetType, valueType);
+		}
+
+		if (targetType instanceof TypeVariable<?>) {
+			TypeVariable<?> typeVariableType = (TypeVariable<?>) targetType;
+			Type[] bounds = typeVariableType.getBounds();
+
+			boolean boundsCompatible = true;
+			for (int i = 0; i < bounds.length; i++) {
+				boundsCompatible &= isTypeCompatible(bounds[i], valueType);
+
+				if (!boundsCompatible) {
+					break;
+				}
+			}
+
+			return boundsCompatible;
+		}
+
+		return false;
+	}
+
+	private static boolean isTypeCompatibleValue(Class<?> targetType, Type valueType) {
+		if (valueType instanceof Class<?>) {
+			return isGenerallyAssignableFrom(targetType, (Class<?>) valueType);
+		}
+
+		if (valueType instanceof TypeVariable<?>) {
+			TypeVariable<?> typeVariableType = (TypeVariable<?>) valueType;
+			Type[] bounds = typeVariableType.getBounds();
+
+			boolean boundsCompatible = false;
+			for (int i = 0; i < bounds.length; i++) {
+				boundsCompatible |= isTypeCompatible(targetType, bounds[i]);
+
+				if (boundsCompatible) {
+					break;
+				}
+			}
+
+			return boundsCompatible;
+		}
+
+		return false;
 	}
 
 	/**

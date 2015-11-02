@@ -3,6 +3,13 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.4
+-----------
+
+Support for generics.
+
+  * Support for Generics and variance where possible.
+
 Version 0.3
 -----------
 
