@@ -3,6 +3,15 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.5
+-----------
+
+Support collaboration between mixed instances.
+
+  * Added the `Mixer` interface.
+  * An implementation can implement the Mixer interface to obtain a reference
+    to the Mixin and invoke other ducklings.
+
 Version 0.4
 -----------
 

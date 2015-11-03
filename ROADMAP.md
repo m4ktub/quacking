@@ -27,9 +27,3 @@ Version 0.6
 
   * Allow to rename calls. Calling method named A can actually call method
     named B in the implementation.
-
-Version 0.5
------------
-
-  * Collaboration between mixed instances. A mixed instance can receive the 
-    mixing and call other implementations through the mixin.

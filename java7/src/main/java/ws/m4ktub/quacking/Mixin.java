@@ -147,7 +147,11 @@ public class Mixin implements DuckType {
 	}
 
 	/**
-	 * Mixes a given instance as an possible implementations.
+	 * Mixes a given instance as a possible implementation.
+	 * 
+	 * <p>
+	 * If the instance implements {@link Mixer} then the object returned by the
+	 * mixer will be the actual implementation being used.
 	 * 
 	 * @param instance
 	 *            The instance to use as implementations of some methods.
@@ -158,6 +162,15 @@ public class Mixin implements DuckType {
 		if (instance == null) {
 			String message = String.format("Tried to mix null. Cannot use null as an implementation.");
 			throw new IllegalArgumentException(message);
+		}
+
+		if (instance instanceof Mixer) {
+			instance = ((Mixer) instance).in(this);
+
+			if (instance == null) {
+				String message = String.format("Mixer produced null. Cannot use null as an implementation.");
+				throw new IllegalStateException(message);
+			}
 		}
 
 		implementations.add(instance);
