@@ -2,9 +2,7 @@ package ws.m4ktub.quacking;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import ws.m4ktub.quacking.helpers.Casts;
 
@@ -61,39 +59,40 @@ import ws.m4ktub.quacking.helpers.Casts;
  */
 public class Mixin implements DuckType {
 
-	private Map<Class<?>, Object> interfaceMap;
-	private List<Object> implementations;
+	private List<Mixed> implementations;
 	private DuckInvocationHandler invocationHandler;
 
 	/**
 	 * Creates a new mixin with no implementations.
 	 */
 	public Mixin() {
-		implementations = new ArrayList<Object>();
-		interfaceMap = new HashMap<Class<?>, Object>();
+		implementations = new ArrayList<Mixed>();
 		invocationHandler = new DuckInvocationHandler(this);
 	}
 
 	/**
-	 * Obtains a list with the instances that were specialized for the given
-	 * interface and then all the other implementations.
+	 * Obtains a list with the mixed instances that were specialized for the
+	 * given interface and then all the other mixed instances.
 	 * 
 	 * @param kind
 	 *            The interface being used.
-	 * @return A list with an ordered list of implementations where specialized
+	 * @return A list with an ordered list of mixed instances where specialized
 	 *         implementations come first and are followed by other
 	 *         implementations in the order they were mixed.
 	 */
-	protected List<Object> getInstances(Class<?> kind) {
-		ArrayList<Object> candidates = new ArrayList<Object>();
+	protected List<Mixed> getMixed(Class<?> kind) {
+		ArrayList<Mixed> candidates = new ArrayList<Mixed>(implementations.size());
 
-		// first add specialized object if available
-		if (interfaceMap.containsKey(kind)) {
-			candidates.add(interfaceMap.get(kind));
+		int preferencePos = 0;
+		for (Mixed mixed : implementations) {
+			if (mixed.hasPreferenceFor(kind)) {
+				// add candidates with preference first in order
+				candidates.add(preferencePos++, mixed);
+			} else {
+				// add others in order at the end
+				candidates.add(mixed);
+			}
 		}
-
-		// second add implementations
-		candidates.addAll(implementations);
 
 		return candidates;
 	}
@@ -111,7 +110,7 @@ public class Mixin implements DuckType {
 		}
 
 		DuckMatcher matcher = new DuckMatcher(kind);
-		for (Object object : getInstances(kind)) {
+		for (Object object : getMixed(kind)) {
 			matcher.matchDuckling(object);
 		}
 
@@ -173,70 +172,9 @@ public class Mixin implements DuckType {
 			}
 		}
 
-		implementations.add(instance);
-		return new Mixed(instance);
-	}
-
-	/**
-	 * An abstraction for a mixed instance. This allows to control how the
-	 * instance is used in the mixin.
-	 */
-	public class Mixed {
-
-		private Object instance;
-
-		Mixed(Object instance) {
-			this.instance = instance;
-		}
-
-		/**
-		 * Specialize the mixed instance to the given interface. This means that
-		 * whenever the mixin is used as the given interface this
-		 * implementations will be used before the others that where mixed
-		 * before.
-		 * 
-		 * <pre>
-		 * public interface Value {
-		 *   int getValue();
-		 * }
-		 * 
-		 * public class Constant {
-		 *   int value;
-		 *   public Constant(int value) {
-		 *   	this.value = value;
-		 *   }
-		 *   
-		 *   public int getValue() {
-		 *     return value;
-		 *   }
-		 * }
-		 * 
-		 * Mixin mixin = new Mixin();
-		 * mixin.mix(new Constant(1));
-		 * mixin.mix(new Constant(2)).as(Value.class);
-		 * mixin.mix(new Constant(3));
-		 * 
-		 * assertTrue(mixin.as(Value.class).getValue() == 2);
-		 * </pre>
-		 * 
-		 * @param kind
-		 *            The interface to specialize in.
-		 * @return The same mixed abstraction to allow fluid configuration.
-		 */
-		public Mixed as(Class<?> kind) {
-			if (kind == null) {
-				throw new IllegalArgumentException("Cannot pass null when specializing a mixed instance.");
-			}
-
-			if (!kind.isInterface()) {
-				String message = String.format("An interface must be used. Cannot specialize for class \"%s\".", kind.getName());
-				throw new IllegalArgumentException(message);
-			}
-
-			interfaceMap.put(kind, instance);
-			return this;
-		}
-
+		Mixed mixed = new Mixed(instance);
+		implementations.add(mixed);
+		return mixed;
 	}
 
 }

@@ -6,8 +6,6 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import ws.m4ktub.quacking.Mixin.Mixed;
-
 public class SampleTest {
 
 	public interface Value {
@@ -56,13 +54,13 @@ public class SampleTest {
 	}
 
 	/**
-	 * @see Mixed#as(Class)
+	 * @see Mixed#preferring(Class)
 	 */
 	@Test
 	public void sampleMixedAs() {
 		Mixin mixin = new Mixin();
 		mixin.mix(new Constant(1));
-		mixin.mix(new Constant(2)).as(Value.class);
+		mixin.mix(new Constant(2)).preferring(Value.class);
 		mixin.mix(new Constant(3));
 
 		assertTrue(mixin.as(Value.class).getValue() == 2);

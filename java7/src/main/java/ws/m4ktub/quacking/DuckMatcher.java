@@ -17,12 +17,11 @@ import ws.m4ktub.quacking.helpers.Reflections;
  * <pre>
  * DuckMatcher matcher = new DuckMatcher(Channel.class);
  * if (matcher.matchDuck(object)) {
- *   object.getClass().getMethod("close").invoke(object);
+ * 	object.getClass().getMethod(&quot;close&quot;).invoke(object);
  * }
  * </pre>
  * 
  * @author m4ktub
- *
  */
 public class DuckMatcher {
 
@@ -60,7 +59,8 @@ public class DuckMatcher {
 	 * implemented by the given object.
 	 * 
 	 * @param object
-	 *            The instance to test for the implementation of methods.
+	 *            An instance or a {@link Mixed object} to test for the
+	 *            implementation of all methods.
 	 * @return <code>true</code> if all methods from the matcher's interface
 	 *         have a compatible method in the object.
 	 */
@@ -77,7 +77,9 @@ public class DuckMatcher {
 	 * matching each duckling.
 	 * 
 	 * @param object
-	 * @return
+	 *            An instance or a {@link Mixed object} to test for the
+	 *            implementation of some methods.
+	 * @return <code>true</code> if some method was matched by the given object.
 	 */
 	public boolean matchDuckling(Object object) {
 		return match(object);
@@ -88,12 +90,13 @@ public class DuckMatcher {
 			return false;
 		}
 
+		Mixed mixed = object instanceof Mixed ? (Mixed) object : new Mixed(object);
 		boolean matched = false;
 
 		Iterator<Method> missingIterator = missing.iterator();
 		while (missingIterator.hasNext()) {
 			Method method = missingIterator.next();
-			Method implMethod = Reflections.getCompatibleMethod(object, method, method.getParameterTypes());
+			Method implMethod = Reflections.getCompatibleMethod(mixed, method, method.getParameterTypes());
 			if (implMethod == null) {
 				continue;
 			}

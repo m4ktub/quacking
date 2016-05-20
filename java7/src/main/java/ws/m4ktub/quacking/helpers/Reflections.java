@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import ws.m4ktub.quacking.DuckWing;
+import ws.m4ktub.quacking.Invocation;
+import ws.m4ktub.quacking.Mixed;
+import ws.m4ktub.quacking.Mixed.MethodConfiguration;
+
 /**
  * Utility methods related with reflection classes.
  * 
@@ -54,16 +59,22 @@ public final class Reflections {
 	 * means that primitive wrapper types are considered compatible because the
 	 * Reflection API handles that case implicitly.
 	 * <p>
-	 * If the object implements the given method given then the same method is
+	 * If the object implements the given method then the same method is
 	 * returned as it is considered the most compatible method found. Otherwise,
 	 * a multi-dispatch resolution is used. From all methods with the same name,
 	 * the method with the most specific parameter types matching the actual
 	 * argument's types will be used.
 	 * <p>
+	 * In all cases, the method configurations of the mixed object are taken
+	 * into account. For example, the resulting method may have a different name
+	 * if the mixed object has a rename configuration. It may also not accept
+	 * the given arguments if there is a curry configuration. If you do not
+	 * control the mixed object you should use this method only to extract a
+	 * compatible method.
 	 * 
 	 * @param object
-	 *            The object instance where to look for a compatible method.
-	 * @param method
+	 *            The mixed instance where to look for a compatible method.
+	 * @param intfMethod
 	 *            The template method used to obtain the name and types.
 	 * @param args
 	 *            The actual arguments that will be used in the invocation.
@@ -72,14 +83,98 @@ public final class Reflections {
 	 * @return The compatible method found, or <code>null</code> if no
 	 *         compatible method was found.
 	 */
-	public static Method getCompatibleMethod(Object object, Method method, Object[] args) {
-		if (method.getDeclaringClass().isAssignableFrom(object.getClass())) {
-			return method;
+	public static Method getCompatibleMethod(Mixed object, Method intfMethod, Object[] args) {
+		Invocation invocation = getMethodInvocation(object, intfMethod, args);
+		return invocation == null ? null : invocation.getMethod();
+	}
+
+	/**
+	 * Obtains am invocation for a compatible method from a, possibly unrelated,
+	 * object instance.
+	 * <p>
+	 * This method is similar to
+	 * {@link #getCompatibleMethod(Mixed, Method, Object[])}. Check the other
+	 * method for how a compatible method is determined. The main difference is
+	 * the invocation is not unwrapped, which gives the caller more flexibility.
+	 * The invocation reflects all the configuration (rename, curry, and around)
+	 * the mixed object contains for the given method.
+	 * 
+	 * @param object
+	 *            The mixed instance where to look for a compatible method.
+	 * @param intfMethod
+	 *            The template method used to obtain the name and types.
+	 * @param args
+	 *            The actual arguments that will be used in the invocation.
+	 *            Argument's types will be used to determine candidate methods
+	 *            in a multi-dispatch resolution.
+	 * @return An invocation that is prepared to proceed with a compatible
+	 *         method that is invoked in the mixed instance with the given
+	 *         arguments..
+	 */
+	public static Invocation getMethodInvocation(Mixed object, Method intfMethod, Object[] args) {
+		Object instance = object.getInstance();
+		Object[] methodArgs = args;
+
+		if (methodArgs == null) {
+			methodArgs = new Object[0];
 		}
 
-		Method objMethod = getJavaMethod(object, method);
+		String methodName = intfMethod.getName();
+		Class<?>[] intfMethodParameterTypes = intfMethod.getParameterTypes();
+		Type[] intfMultiParameterTypes = getMultiDispatchParameterTypes(intfMethod, methodArgs);
+
+		Class<?>[] parameterTypes = intfMethodParameterTypes;
+		Type[] multiParameterTypes = intfMultiParameterTypes;
+
+		DuckWing wing = null;
+
+		if (object.hasConfigurationFor(methodName)) {
+			MethodConfiguration objMethodConf = object.getConfigurationFor(methodName);
+
+			if (objMethodConf.isRenamed()) {
+				methodName = objMethodConf.getRename();
+			}
+
+			if (objMethodConf.isCurried()) {
+				Class<?>[] curriedTypes = objMethodConf.getCurriedTypes();
+				Object[] curriedArgs = objMethodConf.getCurriedArgs();
+
+				parameterTypes = new Class<?>[curriedArgs.length + args.length];
+				multiParameterTypes = new Class<?>[curriedArgs.length + args.length];
+				methodArgs = new Object[curriedArgs.length + args.length];
+
+				int argsPos = 0;
+				int curriedPos = 0;
+				for (int i = 0; i < methodArgs.length; i++) {
+					boolean curry = curriedArgs.length > curriedPos && curriedArgs[argsPos] != Mixed.CURRY_SKIP;
+
+					if (curry) {
+						Object curriedArg = curriedArgs[curriedPos];
+						Class<?> curriedType = curriedTypes[curriedPos];
+
+						methodArgs[i] = curriedArg;
+						parameterTypes[i] = curriedType;
+						multiParameterTypes[i] = curriedArg != null ? curriedArg.getClass() : curriedType;
+						curriedPos++;
+					} else {
+						methodArgs[i] = args[argsPos];
+						parameterTypes[i] = intfMethodParameterTypes[argsPos];
+						multiParameterTypes[i] = intfMultiParameterTypes[argsPos];
+						argsPos++;
+						curriedPos++;
+					}
+				}
+			}
+
+			if (objMethodConf.isWrapped()) {
+				wing = objMethodConf.getAroundHandler();
+			}
+
+		}
+
+		Method objMethod = getJavaMethod(instance, methodName, parameterTypes);
 		if (objMethod == null) {
-			objMethod = getMultiDispatchMethod(object, method, args);
+			objMethod = getMultiDispatchMethod(instance, methodName, multiParameterTypes, methodArgs);
 		}
 
 		if (objMethod == null) {
@@ -87,28 +182,28 @@ public final class Reflections {
 		}
 
 		// check compatible return types
-		Type intfMethodReturnType = method.getGenericReturnType();
+		Type intfMethodReturnType = intfMethod.getGenericReturnType();
 		Type implMethodReturnType = objMethod.getGenericReturnType();
 
 		if (!isTypeCompatible(intfMethodReturnType, implMethodReturnType)) {
 			return null;
 		}
 
-		return objMethod;
+		return new Invocation(object.getInstance(), wing, objMethod, methodArgs);
 	}
 
-	private static Method getJavaMethod(Object object, Method method) {
+	private static Method getJavaMethod(Object object, String method, Class<?>[] parameterTypes) {
 		try {
 			Class<?> objClass = object.getClass();
-			return objClass.getMethod(method.getName(), method.getParameterTypes());
+			return objClass.getMethod(method, parameterTypes);
 		} catch (NoSuchMethodException e) {
 			return null;
 		}
 	}
 
-	private static Method getMultiDispatchMethod(Object object, Method method, Object[] args) {
+	private static Method getMultiDispatchMethod(Object object, String method, Type[] parameterTypes, Object[] args) {
 		// get candidates
-		List<Method> candidates = getMethodsWithName(object.getClass(), method.getName());
+		List<Method> candidates = getMethodsWithName(object.getClass(), method);
 		if (candidates.isEmpty()) {
 			return null;
 		}
@@ -128,7 +223,6 @@ public final class Reflections {
 		}
 
 		// find most specific method using left-to-right disambiguation
-		Type[] parameterTypes = getMultiDispatchParameterTypes(method, args);
 		return getMultiDispatchMethodMatch(candidates, parameterTypes, 0);
 	}
 
@@ -256,6 +350,20 @@ public final class Reflections {
 		return result;
 	}
 
+	/**
+	 * Checks if two types are compatible. Two types are compatible if a value
+	 * of a given type can be assigned to a variable of a target type while
+	 * satisfying all type and bound restrictions (if the target type is
+	 * generic).
+	 * 
+	 * @param targetType
+	 *            Any target type.
+	 * @param valueType
+	 *            The type of source value.
+	 * @return <code>true</code> if a value of the given value type can be
+	 *         assigned to a place of the given target type without violating
+	 *         any type restrictions.
+	 */
 	public static boolean isTypeCompatible(Type targetType, Type valueType) {
 		if (targetType instanceof Class<?>) {
 			return isTypeCompatibleValue((Class<?>) targetType, valueType);

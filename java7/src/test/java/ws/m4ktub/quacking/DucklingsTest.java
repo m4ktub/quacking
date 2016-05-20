@@ -91,7 +91,7 @@ public class DucklingsTest {
 		mixin.mix(new Louie());
 		mixin.mix(new Dewey());
 		mixin.mix(new Huey());
-		mixin.mix(new Fethry()).as(DonaldDuckQuartet.class); // added before Huey
+		mixin.mix(new Fethry()).preferring(DonaldDuckQuartet.class); // added before Huey
 
 		assertThat(mixin.as(DonaldDuckQuartet.class).red(), equalTo("fethry"));
 	}

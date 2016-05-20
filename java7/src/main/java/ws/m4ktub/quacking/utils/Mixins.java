@@ -32,7 +32,7 @@ public final class Mixins {
 
 		Mixin mixin = new Mixin();
 		for (int i = 0; i < objects.length; i++) {
-			mixin.mix(objects[i]).as(interfaces[i]);
+			mixin.mix(objects[i]).preferring(interfaces[i]);
 		}
 
 		return mixin;

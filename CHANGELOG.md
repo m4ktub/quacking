@@ -3,6 +3,22 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
+Version 0.6
+-----------
+
+Allow to redirect calls from an interface method to an implementation method
+with a different signature (name, arguments, etc).
+
+  * Renamed `Mixed.as(...)` to `Mixed.preferring(...)` to avoid 
+    reusing the same name for the `DuckType` interface.
+  * Extracted `Mixed` class to top level.
+  * Added renaming currying and wraping functionalities as configurations 
+    at the `Mixed` class level.
+  * Changed reflection logic to handle `Mixed` wrappers instance of the
+    final object instances directly.
+  * Added documentation to several public methods.
+  * Updated year in license.
+
 Version 0.5
 -----------
 

@@ -30,19 +30,18 @@ class DuckInvocationHandler implements InvocationHandler {
 		}
 
 		// delegate method invocation to instances
-		for (Object instance : mixin.getInstances(intfMethod.getDeclaringClass())) {
-			Method implMethod = Reflections.getCompatibleMethod(instance, intfMethod, args);
-			if (implMethod == null) {
+		for (Mixed mixed : mixin.getMixed(intfMethod.getDeclaringClass())) {
+			Invocation invocation = Reflections.getMethodInvocation(mixed, intfMethod, args);
+			if (invocation == null) {
 				// continue with next instance
 				continue;
 			}
 
 			try {
-				// perform invocation
-				return implMethod.invoke(instance, args);
+				return invocation.proceeed();
 			} catch (IllegalAccessException e) {
 				// found method but could not invoke it
-				String message = String.format("The mixin failed to invoke method %s on %s. The method was not accessible.", intfMethod, instance);
+				String message = String.format("The mixin failed to invoke method %s on %s. The method was not accessible.", intfMethod, mixed);
 				throw new UnsupportedOperationException(message, e);
 			}
 		}
