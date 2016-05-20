@@ -128,7 +128,11 @@ public final class Reflections {
 
 		DuckWing wing = null;
 
-		if (object.hasConfigurationFor(methodName)) {
+		if (!object.hasConfigurationFor(methodName)) {
+			if (intfMethod.getDeclaringClass().isAssignableFrom(instance.getClass())) {
+				return new Invocation(instance, wing, intfMethod, methodArgs);
+			}
+		} else {
 			MethodConfiguration objMethodConf = object.getConfigurationFor(methodName);
 
 			if (objMethodConf.isRenamed()) {
