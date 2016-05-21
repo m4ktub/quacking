@@ -139,6 +139,14 @@ public class SubTypesTest {
 		}
 
 	}
+	
+	class VoidReturnQuacker {
+		
+		public String voidQuacking() {
+			return "something";
+		}
+		
+	}
 
 	public interface Quack {
 	}
@@ -266,7 +274,16 @@ public class SubTypesTest {
 
 		asWrapper.booleanQuacking();
 	}
+	
+	@Test
+	public void testVoidQuackingWithReturn() {
+		Mixin mixin = new Mixin();
+		mixin.mix(new VoidReturnQuacker());
 
+		PrimitiveQuacking quacker = mixin.as(PrimitiveQuacking.class);
+		quacker.voidQuacking();
+	}
+	
 	@Test
 	public void testSubtypingReturn() {
 		Mixin mixin = new Mixin();
@@ -302,5 +319,5 @@ public class SubTypesTest {
 		assertEquals(listener.hear(new StrangeQuack(), new SubsonicQuack()), "right subsonic hear strange quack subsonic quack");
 		assertEquals(listener.hear(new StrangeQuack(), new SonicQuack()), "regular hear strange quack sonic quack");
 	}
-
+	
 }

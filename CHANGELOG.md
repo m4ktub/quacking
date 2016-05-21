@@ -3,7 +3,15 @@ Java Quacking Change Log
 
 The following is the list of released versions and the included changes.
 
-Version 0.6
+Version 0.9.1
+-------------
+
+Fixed unexpected behaviors and some bugs.
+
+  * Now implementation methods can return values for `void` interface methods.
+    The returned value is simply ignored.
+
+Version 0.9
 -----------
 
 Allow to redirect calls from an interface method to an implementation method

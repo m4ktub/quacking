@@ -143,9 +143,9 @@ public final class Reflections {
 				Class<?>[] curriedTypes = objMethodConf.getCurriedTypes();
 				Object[] curriedArgs = objMethodConf.getCurriedArgs();
 
-				parameterTypes = new Class<?>[curriedArgs.length + args.length];
-				multiParameterTypes = new Class<?>[curriedArgs.length + args.length];
-				methodArgs = new Object[curriedArgs.length + args.length];
+				parameterTypes = new Class<?>[curriedArgs.length + methodArgs.length];
+				multiParameterTypes = new Class<?>[curriedArgs.length + methodArgs.length];
+				methodArgs = new Object[curriedArgs.length + methodArgs.length];
 
 				int argsPos = 0;
 				int curriedPos = 0;
@@ -393,6 +393,13 @@ public final class Reflections {
 	}
 
 	private static boolean isTypeCompatibleValue(Class<?> targetType, Type valueType) {
+		// If the interface expects no results (void) then any value is
+		// acceptable as it will be ignored
+		if (targetType.equals(Void.class) || targetType.equals(Void.TYPE)) {
+			return true;
+		}
+
+		// In other cases, type compatibility must be verified
 		if (valueType instanceof Class<?>) {
 			return isGenerallyAssignableFrom(targetType, (Class<?>) valueType);
 		}
