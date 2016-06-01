@@ -1,6 +1,7 @@
 package ws.m4ktub.quacking;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * Simple representation of an method invocation that can be wrapped in a
@@ -10,12 +11,14 @@ import java.lang.reflect.Method;
  */
 public class Invocation {
 
+	public static final Object CURRY_MISS = new Object();
+
 	private final DuckWing DEFAULT = new DuckWing.Default();
 
 	private Object target;
 	private DuckWing around;
 	private Method method;
-	private Object[] args;
+	private Object[] curryArgs;
 
 	/**
 	 * Creates an immutable invocation with all properties.
@@ -27,15 +30,17 @@ public class Invocation {
 	 *            should be invoked directly.
 	 * @param method
 	 *            The method to invoke on the target.
-	 * @param args
-	 *            The default arguments to pass in the invocation.
+	 * @param curryArgs
+	 *            The template argument array with the curried arguments and
+	 *            holes for the interface arguments or <code>null</code> if no
+	 *            curry is used and only the original arguments will be passed.
 	 */
-	public Invocation(Object target, DuckWing around, Method method, Object[] args) {
+	public Invocation(Object target, DuckWing around, Method method, Object[] curryArgs) {
 		super();
 		this.target = target;
 		this.around = around;
 		this.method = method;
-		this.args = args;
+		this.curryArgs = curryArgs;
 	}
 
 	public Object getTarget() {
@@ -51,22 +56,11 @@ public class Invocation {
 	}
 
 	public Object[] getArgs() {
-		return args;
+		return curryArgs;
 	}
 
 	private DuckWing around() {
 		return around == null ? DEFAULT : around;
-	}
-
-	/**
-	 * Performs the invocation with the default arguments.
-	 * 
-	 * @return The result of the invocation.
-	 * @throws Throwable
-	 *             When the invocation results in an error.
-	 */
-	public Object proceeed() throws Throwable {
-		return around().wrap(getTarget(), getMethod(), getArgs());
 	}
 
 	/**
@@ -77,7 +71,39 @@ public class Invocation {
 	 *             When the invocation results in an error.
 	 */
 	public Object proceeed(Object[] args) throws Throwable {
-		return around().wrap(getTarget(), getMethod(), args);
+		return around().wrap(getTarget(), getMethod(), getFinalArgs(args));
+	}
+
+	protected Object[] getFinalArgs(Object[] intfArgs) {
+		if (this.curryArgs == null) {
+			return intfArgs;
+		} else {
+			int misses = 0;
+			for (int i = 0; i < curryArgs.length; i++) {
+				if (curryArgs[i] == CURRY_MISS) {
+					misses++;
+				}
+			}
+			
+			if (intfArgs == null) {
+				intfArgs = new Object[0];
+			}
+			
+			Object[] finalArgs = new Object[this.curryArgs.length + intfArgs.length - misses];
+			System.arraycopy(this.curryArgs, 0, finalArgs, 0, this.curryArgs.length);
+			if (misses == 0) {
+				System.arraycopy(intfArgs, 0, finalArgs, curryArgs.length, intfArgs.length);
+			} else {
+				Arrays.fill(finalArgs, this.curryArgs.length, finalArgs.length, CURRY_MISS);
+				for (int i = 0, j = 0; i < finalArgs.length; i++) {
+					if (finalArgs[i] == CURRY_MISS) {
+						finalArgs[i] = intfArgs[j++];
+					}
+				}
+			}
+
+			return finalArgs;
+		}
 	}
 
 }

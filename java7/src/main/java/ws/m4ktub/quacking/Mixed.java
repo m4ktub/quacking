@@ -1,6 +1,9 @@
 package ws.m4ktub.quacking;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,26 +16,44 @@ import java.util.Map;
  */
 public class Mixed {
 
-	/**
-	 * A mixed instance can have one of it's methods curried to add more
-	 * arguments to ones received from the interface. To allow the interface
-	 * arguments to be placed in the middle of the instance method's arguments
-	 * you can use the special <tt>CURRY_SKIP</tt> value.
-	 * 
-	 * <p>
-	 * For example, in the code bellow, assuming the user would call a
-	 * <tt>getThing(String)</tt> method in interface, with
-	 * <tt>getThing("chair"), the instance method would be called with <tt>getThing("chair", 1)</tt>.
-	 * 
-	 * <pre>
-	 * new Mixed(o).curry(&quot;getThing&quot;, new Class&lt;?&gt;[] { String.class, Integer.class }, new Object[] { CURRY_SKIP, 1 })
-	 * </pre>
-	 */
-	public static final Object CURRY_SKIP = new Object();
+	private static class MethodArgTypes {
+		public Method method;
+		public Type[] argTypes;
+
+		public MethodArgTypes(Method method, Type[] argTypes) {
+			this.method = method;
+			this.argTypes = argTypes;
+		}
+
+		@Override
+		public int hashCode() {
+			return Arrays.hashCode(argTypes) + method.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+
+			MethodArgTypes other = (MethodArgTypes) obj;
+			if (!Arrays.equals(argTypes, other.argTypes)) {
+				return false;
+			}
+
+			if (!method.equals(other.method)) {
+				return false;
+			}
+
+			return true;
+		}
+
+	}
 
 	private Object instance;
 	private List<Class<?>> preferredInterfaces;
 	private Map<String, MethodConfiguration> configurations;
+	private Map<MethodArgTypes, Invocation> methodCache = new HashMap<MethodArgTypes, Invocation>();
 
 	/**
 	 * Allows the specification or several configurations for methods in the
@@ -266,6 +287,15 @@ public class Mixed {
 	 */
 	public Mixed around(String callName, DuckWing handler) {
 		configureMethod(callName).wing = handler;
+		return this;
+	}
+
+	public Invocation getCachedInvocation(Method intfMethod, Type[] argTypes) {
+		return methodCache.get(new MethodArgTypes(intfMethod, argTypes));
+	}
+
+	public Mixed cacheInvocation(Method intfMethod, Type[] argTypes, Invocation invocation) {
+		methodCache.put(new MethodArgTypes(intfMethod, argTypes), invocation);
 		return this;
 	}
 

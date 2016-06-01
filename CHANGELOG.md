@@ -10,6 +10,9 @@ Fixed unexpected behaviors and some bugs.
 
   * Now implementation methods can return values for `void` interface methods.
     The returned value is simply ignored.
+  * Changed `Invocation` to be static in relation with the call arguments
+    and cache the invocation resolution in the mixed instance. Speeds things
+    a little bit.
 
 Version 0.9
 -----------

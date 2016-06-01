@@ -114,6 +114,7 @@ public final class Reflections {
 	public static Invocation getMethodInvocation(Mixed object, Method intfMethod, Object[] args) {
 		Object instance = object.getInstance();
 		Object[] methodArgs = args;
+		Object[] curriedArgs = null;
 
 		if (methodArgs == null) {
 			methodArgs = new Object[0];
@@ -128,9 +129,14 @@ public final class Reflections {
 
 		DuckWing wing = null;
 
+		Invocation cachedInvocation = object.getCachedInvocation(intfMethod, intfMultiParameterTypes);
+		if (cachedInvocation != null) {
+			return cachedInvocation;
+		}
+		
 		if (!object.hasConfigurationFor(methodName)) {
 			if (intfMethod.getDeclaringClass().isAssignableFrom(instance.getClass())) {
-				return new Invocation(instance, wing, intfMethod, methodArgs);
+				return new Invocation(instance, wing, intfMethod, null);
 			}
 		} else {
 			MethodConfiguration objMethodConf = object.getConfigurationFor(methodName);
@@ -141,7 +147,7 @@ public final class Reflections {
 
 			if (objMethodConf.isCurried()) {
 				Class<?>[] curriedTypes = objMethodConf.getCurriedTypes();
-				Object[] curriedArgs = objMethodConf.getCurriedArgs();
+				curriedArgs = objMethodConf.getCurriedArgs();
 
 				parameterTypes = new Class<?>[curriedArgs.length + methodArgs.length];
 				multiParameterTypes = new Class<?>[curriedArgs.length + methodArgs.length];
@@ -150,7 +156,7 @@ public final class Reflections {
 				int argsPos = 0;
 				int curriedPos = 0;
 				for (int i = 0; i < methodArgs.length; i++) {
-					boolean curry = curriedArgs.length > curriedPos && curriedArgs[argsPos] != Mixed.CURRY_SKIP;
+					boolean curry = curriedArgs.length > curriedPos && curriedArgs[argsPos] != Invocation.CURRY_MISS;
 
 					if (curry) {
 						Object curriedArg = curriedArgs[curriedPos];
@@ -193,7 +199,9 @@ public final class Reflections {
 			return null;
 		}
 
-		return new Invocation(object.getInstance(), wing, objMethod, methodArgs);
+		Invocation invocation = new Invocation(object.getInstance(), wing, objMethod, curriedArgs);
+		object.cacheInvocation(intfMethod, intfMultiParameterTypes, invocation);
+		return invocation;
 	}
 
 	private static Method getJavaMethod(Object object, String method, Class<?>[] parameterTypes) {

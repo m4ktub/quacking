@@ -38,7 +38,7 @@ class DuckInvocationHandler implements InvocationHandler {
 			}
 
 			try {
-				return invocation.proceeed();
+				return invocation.proceeed(args);
 			} catch (IllegalAccessException e) {
 				// found method but could not invoke it
 				String message = String.format("The mixin failed to invoke method %s on %s. The method was not accessible.", intfMethod, mixed);
