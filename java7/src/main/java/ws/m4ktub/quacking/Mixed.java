@@ -290,13 +290,33 @@ public class Mixed {
 		return this;
 	}
 
+	/**
+	 * Obtains a previously cached invocation.
+	 * 
+	 * @param intfMethod
+	 *            The associated interface method.
+	 * @param argTypes
+	 *            The argument types passed to the method allowing to
+	 *            distinguish the method from other methods with the same name.
+	 * @return The cached invocation or <code>null</code> if there is none for
+	 *         the method and argument types combination.
+	 */
 	public Invocation getCachedInvocation(Method intfMethod, Type[] argTypes) {
 		return methodCache.get(new MethodArgTypes(intfMethod, argTypes));
 	}
 
-	public Mixed cacheInvocation(Method intfMethod, Type[] argTypes, Invocation invocation) {
+	/**
+	 * Caches an invocation for later retrieval.
+	 * 
+	 * @param intfMethod
+	 *            The associated interface method. The argument types passed to
+	 *            the method allowing to distinguish the method from other
+	 *            methods with the same name.
+	 * @param invocation
+	 *            The invocation that was resolved and will be cached.
+	 */
+	public void cacheInvocation(Method intfMethod, Type[] argTypes, Invocation invocation) {
 		methodCache.put(new MethodArgTypes(intfMethod, argTypes), invocation);
-		return this;
 	}
 
 }
