@@ -133,7 +133,7 @@ public final class Reflections {
 		if (cachedInvocation != null) {
 			return cachedInvocation;
 		}
-		
+
 		if (!object.hasConfigurationFor(methodName)) {
 			if (intfMethod.getDeclaringClass().isAssignableFrom(instance.getClass())) {
 				return new Invocation(instance, wing, intfMethod, null);
@@ -292,13 +292,32 @@ public final class Reflections {
 			return -1;
 		}
 
-		if (!(argType instanceof Class<?>)) {
+		if (isPrimitive(paramType) || isPrimitive(argType)) {
+			// if dealing with a primitive type do not go up in the wrapper
+			// object's type hierarchy.
 			return 0;
 		}
 
 		Class<?> classArgType = (Class<?>) argType;
 		int score = getAssignableScore(paramType, classArgType.getSuperclass());
 		return score < 0 ? -1 : score + 1;
+	}
+
+	/**
+	 * Checks if a type is a primitive type.
+	 * 
+	 * @param type
+	 *            The type to verify.
+	 * @return <code>true</code> if the type is a <tt>Class</tt> representing a
+	 *         primitive type (not wrapper classes).
+	 */
+	public static boolean isPrimitive(Type type) {
+		if (!(type instanceof Class<?>)) {
+			return false;
+		}
+
+		Class<?> typeClass = (Class<?>) type;
+		return typeClass.isPrimitive();
 	}
 
 	/**

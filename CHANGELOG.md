@@ -13,6 +13,9 @@ Fixed unexpected behaviors and some bugs.
   * Changed `Invocation` to be static in relation with the call arguments
     and cache the invocation resolution in the mixed instance. Speeds things
     a little bit.
+  * Fixed problem with compatibility of primitive types. In some situations 
+    `int`, for example, was being compared with `Number` instead of stopping
+    in the `Integer` wrapper type.
 
 Version 0.9
 -----------
