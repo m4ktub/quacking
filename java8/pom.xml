@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>ws.m4ktub.quacking</groupId>
 		<artifactId>quacking</artifactId>
-		<version>0.9.1</version>
+		<version>0.9.2-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>ws.m4ktub.quacking</groupId>
 			<artifactId>quacking-j7</artifactId>
-			<version>0.9.1</version>
+			<version>0.9.2-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
